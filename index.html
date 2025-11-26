@@ -3,783 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sudoku Challenge - Dark Mode</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Use Inter font family -->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1e293b; /* Dark Slate Background */
-            color: #f1f5f9; /* Light text for contrast */
-        }
-
-        /* --- Sudoku Grid Styling (REDUCED SIZE) --- */
-        .sudoku-grid {
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            grid-template-rows: repeat(9, 1fr);
-            aspect-ratio: 1 / 1; 
-            width: 85vw; 
-            max-width: 450px; 
-            margin: 0 auto;
-            border: 4px solid #f1f5f9; /* Light border in dark mode */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
-            border-radius: 8px; 
-            overflow: hidden; 
-        }
-        
-        .cell {
-            border: 1px solid #475569; /* Soft dark cell separation */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: clamp(14px, 3.5vw, 36px); 
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.15s, border-color 0.15s, transform 0.1s;
-            user-select: none;
-            background-color: #334155; /* Soft dark cell background */
-            color: #f1f5f9;
-            padding: 2px;
-            position: relative;
-        }
-        
-        /* Notes container */
-        .cell-notes {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            width: 100%;
-            height: 100%;
-            font-size: clamp(7px, 1.5vw, 14px);
-            font-weight: 400;
-            color: #94a3b8; /* Lighter color for notes */
-            line-height: 1; 
-        }
-        .cell-notes > div {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-        
-        .cell-value {
-            position: absolute;
-        }
-
-        /* --- 3x3 Block Separation (Cages) --- */
-        .cell:nth-child(9n + 3), .cell:nth-child(9n + 6) { 
-            border-right-width: 3px; 
-            border-right-color: #f1f5f9; /* Stronger separation in dark mode */
-        }
-        .cell:nth-child(9n + 9) { 
-            border-right-width: 1px; 
-            border-right-color: #475569; 
-        }
-
-        .cell:nth-child(n + 19):nth-child(-n + 27),
-        .cell:nth-child(n + 46):nth-child(-n + 54) { 
-            border-bottom-width: 3px; 
-            border-bottom-color: #f1f5f9; 
-        }
-
-        /* --- Cell States --- */
-        .cell.clue {
-            font-weight: 700;
-            color: #cbd5e1; /* Slightly lighter clue color */
-            background-color: #1e293b; /* Base dark background for clue */
-        }
-        
-        .cell.highlight {
-             background-color: #475569; /* Darker highlight for rows/cols/boxes */
-        }
-
-        .cell.active {
-            background-color: #3b82f6 !important; /* Blue active background */
-            box-shadow: inset 0 0 0 2px #93c5fd; /* Light blue ring */
-            transform: scale(1.03);
-            z-index: 10;
-        }
-        
-        .cell.value-highlight {
-            background-color: #2dd4bf; /* Teal for same value highlighting */
-            box-shadow: inset 0 0 0 1px #2dd4bf;
-        }
-        
-        .cell.clue.active {
-            background-color: #3b82f6 !important;
-        }
-
-        .cell:not(.clue):not(.error-input) {
-            color: #9333ea; /* Purple/Violet for user input */
-        }
-        
-        .cell.error-input {
-            background-color: #fca5a5 !important; /* Light red background */
-            color: #991b1b !important; /* Dark red text */
-            animation: shake 0.3s;
-        }
-        
-        @keyframes shake {
-            0%, 100% {transform: translateX(0);}
-            20%, 60% {transform: translateX(-5px);}
-            40%, 80% {transform: translateX(5px);}
-        }
-
-        .number-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            box-shadow: none;
-            background-color: #475569 !important; /* Darker disabled background */
-            color: #94a3b8;
-        }
-        
-        .notes-mode-active {
-            background-color: #3b82f6 !important;
-            color: white !important;
-        }
-    </style>
-</head>
-<body class="p-2 sm:p-4 min-h-screen flex flex-col items-center">
+    <title>Game Selection Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
     
-    <!-- MAIN GAME WRAPPER -->
-    <main class="flex flex-col items-center w-full lg:h-full lg:flex-grow lg:justify-center p-0 pt-2 lg:pt-0">
+    <style>
+        /* Basic Reset and Font */
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a2e; /* Dark background as fallback */
+            color: #e4e6eb; /* Light text */
+            min-height: 100vh;
 
-        <!-- HEADER -->
-        <header class="text-center mb-2 lg:mb-1">
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-1">Sudoku Challenge</h1>
-            <p class="text-sm sm:text-base text-gray-400">You have <span id="lives-display" class="font-bold text-red-400">3 LIVES</span>. Lose a life on incorrect input!</p>
-        </header>
+            /* --- RANDOM WALLPAPER STYLES (JS will set the image URL) --- */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            /* --- END WALLPAPER STYLES --- */
+        }
+        
+        /* Page Header Styling */
+        .page-header {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: rgba(15, 15, 27, 0.8); /* Transparent background for header */
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Container for all game cards (using Flexbox for layout) */
+        .game-panel-container {
+            display: flex;
+            flex-wrap: wrap; 
+            justify-content: center;
+            gap: 30px; 
+            padding: 20px;
+        }
 
-        <!-- Difficulty Selector -->
-        <div id="difficulty-selector" class="flex flex-wrap justify-center gap-3 mb-2 lg:mb-1 w-full max-w-lg">
-            <button data-level="easy" class="level-btn bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out text-sm sm:text-base">Easy</button>
-            <button data-level="medium" class="level-btn bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out text-sm sm:text-base">Medium</button>
-            <button data-level="hard" class="level-btn bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out text-sm sm:text-base">Hard</button>
-            <button data-level="extreme" class="level-btn bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out text-sm sm:text-base">Extreme</button>
-        </div>
+        /* Individual Game Card Styling */
+        .game-card {
+            display: flex;
+            flex-direction: column;
+            width: 300px; 
+            min-height: 350px;
+            background-color: rgba(44, 44, 71, 0.9); /* Transparent background for cards */
+            border-radius: 12px;
+            overflow: hidden; 
+            text-decoration: none; 
+            color: inherit; 
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
 
-        <!-- Game Status and Controls -->
-        <div id="game-status" class="mb-1.5 lg:mb-1 text-center w-full max-w-lg flex flex-wrap justify-center items-center px-2 sm:px-0 gap-4">
-            <p id="current-level" class="text-lg font-semibold text-gray-200">Level: Not Started</p>
-            <p id="timer" class="text-base text-gray-400">Time: 00:00</p>
-        </div>
+        /* Hover Effect for Interaction */
+        .game-card:hover:not(.unavailable) {
+            transform: translateY(-5px); 
+            box-shadow: 0 12px 25px rgba(0, 191, 255, 0.4); 
+        }
 
-        <!-- Sudoku Grid Container -->
-        <div class="grid-container mb-2 lg:mb-1.5">
-            <div id="sudoku-grid" class="sudoku-grid">
-                <!-- Cells will be inserted here by JavaScript -->
+        /* Placeholder for Game Images */
+        .game-image-placeholder {
+            height: 180px;
+            border-bottom: 3px solid #6a0dad; 
+            
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* GAME IMAGE PATHS - STILL ASSUME THEY ARE IN 'images' FOLDER */
+        .game-1 { 
+            background-image: url('maze.png');
+            background-color: #6d4c41; 
+        }
+        
+        .game-2 { 
+            background-image: url('flappybird.png');
+            background-color: #4fc3f7; 
+        }
+
+        /* UPDATED: Styles for the 3rd Game (Sudoku) */
+        .game-3 { 
+            background-image: url('sudoku.png'); /* Assuming you have a 'sudoku.png' image */
+            background-color: #9c27b0; /* A pleasant purple color */
+        }
+        /* END UPDATED */
+        
+        /* Game Information Text Area and Status Styles remain the same... */
+        .game-info {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-title {
+            font-size: 1.5em;
+            margin: 0 0 8px 0;
+            color: #00bfff; 
+        }
+        
+        .game-description {
+            font-size: 0.9em;
+            margin: 0 0 15px 0;
+            color: #b0b0d0;
+            flex-grow: 1; 
+        }
+        
+        .game-status {
+            font-weight: bold;
+            font-size: 0.85em;
+            padding: 5px 10px;
+            border-radius: 4px;
+            align-self: flex-start; 
+            background-color: #4CAF50; 
+            color: #ffffff;
+        }
+        
+        .game-card.unavailable {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none; 
+        }
+        
+        .game-card.unavailable .game-status {
+            background-color: #F44336; 
+        }
+        
+        @media (max-width: 768px) {
+            .game-card {
+                width: 100%; 
+                max-width: 400px; 
+            }
+        }
+        </style>
+</head>
+<body>
+    
+    <header class="page-header">
+        <h1>Select a Game to Play</h1>
+    </header>
+    
+    <div class="game-panel-container">
+        
+        <a href="https://dhanushshenoy746.github.io/maze/" class="game-card" data-game-title="Maze Pathfinder" target="_blank">
+            <div class="game-image-placeholder game-1"></div>
+            <div class="game-info">
+                <h2 class="game-title">Maze Pathfinder</h2>
+                <p class="game-description">Navigate complex 3D mazes and find the shortest route to freedom!</p>
+                <span class="game-status">Ready to Play</span>
             </div>
+        </a>
+        
+        <a href="https://mahid712.github.io/flappymulti/" class="game-card" data-game-title="Flappy Bird" target="_blank">
+            <div class="game-image-placeholder game-2"></div>
+            <div class="game-info">
+                <h2 class="game-title">Flappy Bird</h2>
+                <p class="game-description">Tap the screen to fly the bird and avoid the dangerous pipes.</p>
+                <span class="game-status">Ready to Play</span>
+            </div>
+        </a>
+        
+        <a href="https://mahid712.github.io/sudoku/" class="game-card" data-game-title="Sudoku Solver" target="_blank">
+            <div class="game-image-placeholder game-3"></div>
+            <div class="game-info">
+                <h2 class="game-title">Sudoku Solver</h2>
+                <p class="game-description">The classic logic-based number-placement puzzle. Sharpen your mind!</p>
+                <span class="game-status">Ready to Play</span>
+            </div>
+        </a>
         </div>
-
-        <!-- Number Input Pad: LARGER BUTTONS -->
-        <div id="input-pad" class="flex justify-center gap-2 w-full max-w-2xl p-2 rounded-xl bg-gray-800 shadow-xl mb-0">
-            <!-- Numbers 1-9 -->
-            <button class="number-btn bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" data-number="1">1</button>
-            <button class="number-btn bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" data-number="2">2</button>
-            <button class="number-btn bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" data-number="3">3</button>
-            <button class="number-btn bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" data-number="4">4</button>
-            <button class="number-btn bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" data-number="5">5</button>
-            <button class="number-btn bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" data-number="6">6</button>
-            <button class="number-btn bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" data-number="7">7</button>
-            <button class="number-btn bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" data-number="8">8</button>
-            <button class="number-btn bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" data-number="9">9</button>
-            
-            <!-- Notes Toggle Button -->
-            <button id="notes-toggle-btn" class="bg-blue-800 hover:bg-blue-700 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition" title="Toggle Pencil Mode">
-                <svg class="w-6 h-6 sm:w-7 sm:h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-            </button>
-            
-            <!-- Clear button -->
-            <button id="clear-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold w-10 h-10 sm:w-12 sm:h-12 text-lg rounded-lg shadow-md transition">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-    </main>
-
-    <!-- Message Modal/Box -->
-    <div id="message-box" class="fixed inset-0 bg-gray-900 bg-opacity-80 hidden items-center justify-center p-4 z-50 transition-opacity duration-300">
-        <div class="bg-gray-700 p-6 rounded-xl shadow-2xl max-w-sm w-full text-center transform transition-transform duration-300 scale-95 opacity-0">
-            <h3 id="message-title" class="text-2xl font-bold mb-3 text-white"></h3>
-            <p id="message-text" class="mb-6 text-gray-300"></p>
-            <button id="close-message" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition transform hover:scale-105">New Game</button>
-        </div>
-    </div>
-
-
+    
     <script>
-        // --- GAME STATE ---
-        let currentBoard = [];
-        let solutionBoard = [];
-        let initialBoard = []; 
-        let notesBoard = []; 
-        let activeCell = null;
-        let lives = 3;
-        let timerInterval = null;
-        let seconds = 0;
-        let gameActive = false;
-        let isNotesMode = false; 
-
-        const DIFFICULTY_CLUES = {
-            easy: 32,
-            medium: 24,
-            hard: 18,
-            extreme: 14
-        };
-
-        // --- DOM ELEMENTS ---
-        const gridElement = document.getElementById('sudoku-grid');
-        const levelButtons = document.querySelectorAll('.level-btn');
-        const numberButtons = document.querySelectorAll('.number-btn');
-        const clearButton = document.getElementById('clear-btn');
-        const notesToggleButton = document.getElementById('notes-toggle-btn'); 
-        const timerDisplay = document.getElementById('timer');
-        const currentLevelDisplay = document.getElementById('current-level');
-        const livesDisplay = document.getElementById('lives-display');
-        const messageBox = document.getElementById('message-box');
-        const messageModal = messageBox.querySelector('div');
-        const messageTitle = document.getElementById('message-title');
-        const messageText = document.getElementById('message-text');
-        const closeMessageButton = document.getElementById('close-message');
-
-        // --- UTILITY FUNCTIONS ---
-
-        function showMessage(title, text, isGameOver = false) {
-            if (isGameOver) {
-                stopTimer();
-                gameActive = false; 
-            }
-            messageTitle.textContent = title;
-            messageText.textContent = text;
-            closeMessageButton.textContent = isGameOver ? "Start New Game" : "Close";
-            messageBox.classList.remove('hidden');
-            messageBox.classList.add('flex');
-            // Animate in
-            setTimeout(() => {
-                messageModal.classList.remove('scale-95', 'opacity-0');
-                messageModal.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function handleMessageClose() {
-            // Animate out
-            messageModal.classList.remove('scale-100', 'opacity-100');
-            messageModal.classList.add('scale-95', 'opacity-0');
+        // --- RANDOM WALLPAPER LOGIC ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const numWallpapers = 5; // Set this number to the total count of your background images
             
-            const isGameEnd = messageTitle.textContent.includes("Game Over") || messageTitle.textContent.includes("Puzzle Solved");
-
-            setTimeout(() => {
-                messageBox.classList.remove('flex');
-                messageBox.classList.add('hidden');
-                
-                if (isGameEnd) {
-                    initializeGame(); 
-                } else if (gameActive) {
-                    startTimer(); 
-                }
-            }, 300); 
-        }
-        
-        closeMessageButton.addEventListener('click', handleMessageClose);
-        
-        // Timer functions
-        function startTimer() {
-            if (timerInterval) return;
-            if (seconds === 0) {
-                 updateTimerDisplay();
-            }
-
-            timerInterval = setInterval(() => {
-                seconds++;
-                updateTimerDisplay();
-            }, 1000);
-        }
-
-        function stopTimer() {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-
-        function updateTimerDisplay() {
-            const min = String(Math.floor(seconds / 60)).padStart(2, '0');
-            const sec = String(seconds % 60).padStart(2, '0');
-            timerDisplay.textContent = `Time: ${min}:${sec}`;
-        }
-
-        function updateLivesDisplay() {
-            livesDisplay.textContent = `${lives} LIVES`;
-            if (lives <= 1) {
-                livesDisplay.classList.add('text-red-400');
-                livesDisplay.classList.remove('text-red-500');
-            } else {
-                livesDisplay.classList.add('text-red-400');
-                livesDisplay.classList.remove('text-red-500');
-            }
-        }
-        
-        /**
-         * Generates a completely filled, valid Sudoku board using backtracking.
-         */
-        function generateSolvedBoard() {
-            const board = Array(9).fill(0).map(() => Array(9).fill(0));
+            // 1. Generate a random number between 1 and numWallpapers (e.g., 1 to 5)
+            const randomIndex = Math.floor(Math.random() * numWallpapers) + 1;
             
-            function isSafe(r, c, num) {
-                // Check row and column
-                for (let i = 0; i < 9; i++) {
-                    if (board[r][i] === num || board[i][c] === num) return false;
-                }
-                // Check 3x3 box
-                const startRow = r - r % 3;
-                const startCol = c - c % 3;
-                for (let i = 0; i < 3; i++) {
-                    for (let j = 0; j < 3; j++) {
-                        if (board[startRow + i][startCol + j] === num) return false;
-                    }
-                }
-                return true;
-            }
-
-            function solve(r, c) {
-                if (r === 9) return true; 
-
-                const nextR = c === 8 ? r + 1 : r;
-                const nextC = c === 8 ? 0 : c + 1;
-
-                if (board[r][c] !== 0) return solve(nextR, nextC);
-
-                const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
-                for (const num of numbers) {
-                    if (isSafe(r, c, num)) {
-                        board[r][c] = num;
-                        if (solve(nextR, nextC)) return true;
-                        board[r][c] = 0; 
-                    }
-                }
-                return false;
-            }
-            solve(0, 0);
-            return board;
-        }
-
-        /**
-         * Removes numbers from the solved board to create a puzzle of desired difficulty.
-         */
-        function digHoles(solvedBoard, clues) {
-            const puzzle = solvedBoard.map(row => [...row]);
-            let cellsToKeep = new Set();
-            while (cellsToKeep.size < clues) {
-                const r = Math.floor(Math.random() * 9);
-                const c = Math.floor(Math.random() * 9);
-                cellsToKeep.add(`${r},${c}`);
-            }
-
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    if (!cellsToKeep.has(`${r},${c}`)) {
-                        puzzle[r][c] = 0;
-                    }
-                }
-            }
-            return puzzle;
-        }
+            // 2. Construct the file path using the random index
+            // *** THIS LINE WAS CHANGED: Removed 'images/' path prefix ***
+            const wallpaperPath = `bg${randomIndex}.jpg`; 
+            
+            // 3. Apply the path to the body's background-image style
+            document.body.style.backgroundImage = `url('${wallpaperPath}')`;
+            
+            console.log(`Wallpaper loaded: ${wallpaperPath}`);
+        });
+        // --- END RANDOM WALLPAPER LOGIC ---
         
-        /**
-         * Updates the state of the number input pad (disabling buttons for completed numbers).
-         */
-        function updateNumberPadState() {
-            const counts = {};
-            for (let i = 1; i <= 9; i++) {
-                counts[i] = 0;
-            }
+        
+        // Game Card Click Logic
+        const gameCards = document.querySelectorAll('.game-card');
 
-            // Count occurrences of each number
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    const value = currentBoard[r][c];
-                    if (value !== 0) {
-                        counts[value]++;
-                    }
-                }
-            }
+        gameCards.forEach(card => {
+            card.addEventListener('click', function(event) {
+                const gameTitle = this.getAttribute('data-game-title');
+                const isUnavailable = this.classList.contains('unavailable');
 
-            numberButtons.forEach(btn => {
-                const num = parseInt(btn.dataset.number);
-                
-                // Only disable if the count is 9 AND all 9 are correct (match the solution)
-                if (counts[num] === 9) {
-                    let allCorrect = true;
-                    for(let r = 0; r < 9; r++) {
-                        for(let c = 0; c < 9; c++) {
-                            // Check only cells where the user placed this number or it was a clue
-                            if (currentBoard[r][c] === num && solutionBoard[r][c] !== num) {
-                                allCorrect = false;
-                                break;
-                            }
-                        }
-                        if (!allCorrect) break;
-                    }
-
-                    if (allCorrect) {
-                        btn.disabled = true;
-                    } else {
-                        btn.disabled = false;
-                    }
+                if (isUnavailable) {
+                    event.preventDefault(); 
+                    console.log(`[Launch Failed] ${gameTitle} is currently unavailable for play.`);
+                    alert(`Sorry, ${gameTitle} is currently unavailable!`);
                 } else {
-                    btn.disabled = false;
+                    console.log(`[Launch Success] Attempting to open: ${gameTitle}`);
                 }
             });
-        }
-        
-        /**
-         * Renders the board based on the currentBoard state, including notes.
-         */
-        function renderBoard() {
-            gridElement.innerHTML = '';
-            
-            const activeValue = activeCell ? currentBoard[activeCell.row][activeCell.col] : 0;
-
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.dataset.row = r;
-                    cell.dataset.col = c;
-                    
-                    cell.addEventListener('click', handleCellClick);
-                    
-                    const value = currentBoard[r][c];
-
-                    if (initialBoard[r][c] !== 0) {
-                        cell.classList.add('clue');
-                    }
-                    
-                    // --- RENDER CONTENT (Value or Notes) ---
-                    if (value !== 0) {
-                        // Render main value
-                        const valueSpan = document.createElement('span');
-                        valueSpan.className = 'cell-value';
-                        valueSpan.textContent = value;
-                        cell.appendChild(valueSpan);
-                    } else {
-                        // Render notes
-                        const notes = notesBoard[r][c];
-                        if (notes.length > 0) {
-                            const notesContainer = document.createElement('div');
-                            notesContainer.className = 'cell-notes';
-                            for (let i = 1; i <= 9; i++) {
-                                const noteDiv = document.createElement('div');
-                                if (notes.includes(i)) {
-                                    noteDiv.textContent = i;
-                                }
-                                notesContainer.appendChild(noteDiv);
-                            }
-                            cell.appendChild(notesContainer);
-                        }
-                    }
-
-
-                    // --- HIGHLIGHTING LOGIC ---
-                    if (activeCell && activeCell.row === r && activeCell.col === c) {
-                         cell.classList.add('active');
-                         activeCell.element = cell; 
-                    } else if (activeCell) {
-                         const activeR = activeCell.row;
-                         const activeC = activeCell.col;
-
-                         const sameRow = r === activeR;
-                         const sameCol = c === activeC;
-                         const sameBox = (Math.floor(r / 3) === Math.floor(activeR / 3)) && 
-                                         (Math.floor(c / 3) === Math.floor(activeC / 3));
-
-                         if (sameRow || sameCol || sameBox) {
-                             cell.classList.add('highlight');
-                         }
-                         
-                         if (activeValue !== 0 && value === activeValue) {
-                            cell.classList.add('value-highlight');
-                         }
-                    }
-                    
-                    gridElement.appendChild(cell);
-                }
-            }
-             updateNumberPadState();
-        }
-
-        /**
-         * Checks if the entire board is filled and solved.
-         */
-        function checkWinCondition() {
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    if (currentBoard[r][c] !== solutionBoard[r][c]) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-        
-        /**
-         * Executes the game over sequence.
-         */
-        function gameOver() {
-            gameActive = false;
-            stopTimer();
-            showMessage("Game Over!", "You ran out of lives (3 wrong placements)! Press 'Start New Game' to play again.", true);
-        }
-
-
-        // --- EVENT HANDLERS ---
-
-        /**
-         * Initializes a new game when a difficulty button is clicked.
-         */
-        function handleLevelSelect(e) {
-            const level = e.currentTarget.dataset.level;
-            const clues = DIFFICULTY_CLUES[level];
-
-            // 1. Generate the fully solved board
-            solutionBoard = generateSolvedBoard();
-
-            // 2. Create the puzzle board
-            const puzzle = digHoles(solutionBoard, clues);
-
-            // 3. Setup UI and state
-            initialBoard = puzzle.map(row => [...row]);
-            currentBoard = puzzle.map(row => [...row]); 
-            
-            // Initialize Notes Board (9x9 array where each element is a Set of numbers (1-9))
-            notesBoard = Array(9).fill(0).map(() => Array(9).fill(0).map(() => []));
-
-            currentLevelDisplay.textContent = `Level: ${level.charAt(0).toUpperCase() + level.slice(1)}`;
-            
-            // Reset lives and start game
-            lives = 3;
-            gameActive = true;
-            updateLivesDisplay();
-            
-            seconds = 0; // Reset timer count
-            startTimer();
-            activeCell = null;
-            renderBoard();
-
-            // Highlight selected difficulty button
-            levelButtons.forEach(btn => btn.classList.remove('bg-opacity-75', 'shadow-inner'));
-            e.currentTarget.classList.add('bg-opacity-75', 'shadow-inner');
-        }
-
-        /**
-         * Handles cell selection and applies highlighting.
-         */
-        function handleCellClick(e) {
-            if (!gameActive) return;
-
-            const newActiveCellElement = e.currentTarget;
-            const r = parseInt(newActiveCellElement.dataset.row);
-            const c = parseInt(newActiveCellElement.dataset.col);
-
-            activeCell = {
-                row: r,
-                col: c,
-                element: newActiveCellElement
-            };
-            
-            renderBoard();
-        }
-
-        /**
-         * Toggles between standard input mode and pencil/notes mode.
-         */
-        notesToggleButton.addEventListener('click', () => {
-            if (!gameActive) {
-                showMessage("Game Not Started", "Please select a difficulty level to begin the game.");
-                return;
-            }
-            isNotesMode = !isNotesMode;
-            notesToggleButton.classList.toggle('notes-mode-active', isNotesMode);
-            // Adjusted classes for dark mode buttons
-            notesToggleButton.classList.toggle('bg-blue-800', !isNotesMode);
-            notesToggleButton.classList.toggle('bg-blue-600', isNotesMode);
         });
-
-        /**
-         * Handles number input from the pad or keyboard.
-         */
-        function handleNumberInput(num) {
-            if (!gameActive) {
-                showMessage("Game Not Started", "Please select a difficulty level to begin the game.");
-                return;
-            }
-            if (!activeCell) {
-                showMessage("No Cell Selected", `Please click on an empty cell before entering a number (${isNotesMode ? 'notes' : 'value'}).`);
-                return;
-            }
-            
-            const { row, col, element } = activeCell;
-            
-            // CRITICAL: Block changes to clue cells
-            if (initialBoard[row][col] !== 0) {
-                console.log("Cannot change a clue number.");
-                return; 
-            }
-
-            // --- NOTES MODE LOGIC ---
-            if (isNotesMode) {
-                if (num === 0) {
-                     // Clear all notes
-                    notesBoard[row][col] = [];
-                } else {
-                    const notes = notesBoard[row][col];
-                    const index = notes.indexOf(num);
-                    
-                    if (index > -1) {
-                        // Note exists, remove it
-                        notes.splice(index, 1);
-                    } else {
-                        // Note doesn't exist, add it (and keep them sorted for clean rendering)
-                        notes.push(num);
-                        notes.sort((a, b) => a - b);
-                    }
-                    // Make sure the cell is empty before placing a note
-                    currentBoard[row][col] = 0; 
-                }
-                renderBoard();
-                return;
-            }
-
-
-            // --- VALUE INPUT MODE LOGIC ---
-            
-            // 1. If clearing (num = 0), clear value and notes
-            if (num === 0) {
-                currentBoard[row][col] = 0;
-                notesBoard[row][col] = []; // Clear notes as well when clearing value
-                renderBoard(); 
-                return;
-            }
-
-            const btn = document.querySelector(`.number-btn[data-number='${num}']`);
-            if (btn && btn.disabled) return;
-            
-            // Clear notes when placing a definite value
-            notesBoard[row][col] = [];
-
-
-            // 2. PERFORM VALIDATION AGAINST SOLUTION BOARD
-            const isCorrectSolution = (num === solutionBoard[row][col]);
-
-            if (isCorrectSolution) {
-                // CORRECT PLACEMENT
-                currentBoard[row][col] = num;
-                element.classList.remove('error-input');
-                
-                renderBoard(); 
-                
-                if (checkWinCondition()) {
-                    showMessage("Puzzle Solved!", `You conquered the Sudoku puzzle in ${timerDisplay.textContent.split(': ')[1]} with ${lives} ${lives === 1 ? 'life' : 'lives'} remaining!`, true);
-                }
-
-            } else {
-                // INCORRECT PLACEMENT
-                lives--;
-                updateLivesDisplay();
-                
-                // Temporarily show the wrong input
-                currentBoard[row][col] = num; 
-                element.classList.add('error-input');
-                
-                if (lives <= 0) {
-                    gameOver();
-                } else {
-                    console.log(`Wrong Move! The correct number is ${solutionBoard[row][col]}.`);
-                }
-
-                // Schedule clearing the number and removing error state
-                setTimeout(() => {
-                    currentBoard[row][col] = 0; 
-                    element.classList.remove('error-input');
-                    renderBoard(); 
-                }, 700); 
-            }
-        }
-
-        // --- BIND EVENT LISTENERS ---
-
-        levelButtons.forEach(btn => {
-            btn.addEventListener('click', handleLevelSelect);
-        });
-
-        numberButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const num = parseInt(e.currentTarget.dataset.number);
-                handleNumberInput(num);
-            });
-        });
-
-        clearButton.addEventListener('click', () => handleNumberInput(0));
-
-        // Keyboard input handler
-        document.addEventListener('keydown', (e) => {
-            const key = e.key;
-
-            if (!gameActive) return;
-
-            if (key >= '1' && key <= '9') {
-                handleNumberInput(parseInt(key));
-                e.preventDefault();
-            } else if (key === 'Delete' || key === 'Backspace' || key === '0' || key === ' ') {
-                handleNumberInput(0);
-                e.preventDefault();
-            } else if (key.startsWith('Arrow') && activeCell) {
-                e.preventDefault();
-                let { row, col } = activeCell;
-                let newRow = row;
-                let newCol = col;
-
-                switch (key) {
-                    case 'ArrowUp': newRow = Math.max(0, row - 1); break;
-                    case 'ArrowDown': newRow = Math.min(8, row + 1); break;
-                    case 'ArrowLeft': newCol = Math.max(0, col - 1); break;
-                    case 'ArrowRight': newCol = Math.min(8, col + 1); break;
-                }
-
-                const newCellElement = document.querySelector(`.cell[data-row='${newRow}'][data-col='${newCol}']`);
-                if (newCellElement) {
-                    newCellElement.click();
-                }
-            }
-        });
-
-        // --- INITIALIZATION ---
-        
-        function initializeGame() {
-            initialBoard = Array(9).fill(0).map(() => Array(9).fill(0));
-            currentBoard = initialBoard.map(row => [...row]);
-            solutionBoard = currentBoard.map(row => [...row]); 
-            notesBoard = Array(9).fill(0).map(() => Array(9).fill(0).map(() => [])); 
-
-            lives = 3;
-            gameActive = false;
-            activeCell = null;
-            isNotesMode = false; 
-            seconds = 0; 
-            stopTimer();
-
-            updateLivesDisplay();
-            timerDisplay.textContent = `Time: 00:00`;
-            currentLevelDisplay.textContent = "Level: Not Started";
-
-            renderBoard(); 
-            
-            levelButtons.forEach(btn => btn.classList.remove('bg-opacity-75', 'shadow-inner'));
-            notesToggleButton.classList.remove('notes-mode-active', 'bg-blue-600');
-            notesToggleButton.classList.add('bg-blue-800');
-        }
-
-        window.onload = initializeGame;
     </script>
+
 </body>
 </html>
